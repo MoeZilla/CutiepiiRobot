@@ -108,10 +108,10 @@ async def hmm(_, message):
     if senderr != BOT_ID:
         return
     msg = message.text
-    r = requests.get(f"https://kukiapihidden.herokuapp.com/kuki/chatbot?message={msg}").json()
-    pro = f"{r['reply']}"
+    reply = await fetch(f"https://kukiapihidden.herokuapp.com/kuki/chatbot?message={msg}")
+    reply = reply['reply']
     await cutiepii.send_chat_action(message.chat.id, "typing")
-    await message.reply_text(pro)
+    await message.reply_text(reply)
 
 
 __help__ = """
