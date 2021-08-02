@@ -120,4 +120,14 @@ __handlers__ = [
     CHATBOT_HANDLER,
 ]
 
+__help__ = f"""
+Chatbot utilizes the Kuki API and allows Cutiepii to talk and provides a more interactive group chat experience.
+*Commands:* 
+*Admins only:*
+ • `/addchat`*:* Enables Chatbot mode in the chat.
+ • `/rmchat`*:* Disables Chatbot mode in the chat.
+Reports bugs at @PranavAjay
+*Powered by Moezilla* (https://github/moezilla) from @Kukichatbot
+"""
 
+__mod_name__ = "ChatBot"
