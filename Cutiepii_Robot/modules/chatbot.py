@@ -18,6 +18,7 @@
 
 import json
 import os
+import re
 import html
 import requests
 import Cutiepii_Robot.modules.sql.kuki_sql as sql
@@ -26,12 +27,14 @@ from time import sleep
 from telegram import ParseMode
 from Cutiepii_Robot import dispatcher, updater, SUPPORT_CHAT
 from Cutiepii_Robot.modules.log_channel import gloggable
+from Cutiepii_Robot.modules.disable import DisableAbleCommandHandler, DisableAbleMessageHandler
 from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram.error import BadRequest, RetryAfter, Unauthorized
 from telegram.ext import CommandHandler, run_async, CallbackContext, MessageHandler, Filters
 from Cutiepii_Robot.modules.helper_funcs.filters import CustomFilters
 from Cutiepii_Robot.modules.helper_funcs.chat_status import user_admin
 from telegram.utils.helpers import mention_html, mention_markdown, escape_markdown
+
 
 @user_admin
 @gloggable
@@ -40,6 +43,10 @@ def add_chat(update: Update, context: CallbackContext):
     msg = update.effective_message
     user = update.effective_user
     is_kuki = sql.is_kuki(chat.id)
+    if chat.type == "private":
+        msg.reply_text("You can't enable AI in PM.")
+        return
+
     if not is_kuki:
         sql.set_kuki(chat.id)
         msg.reply_text("Cutiepii AI successfully enabled for this chat!")
@@ -71,39 +78,41 @@ def rem_chat(update: Update, context: CallbackContext):
         f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
     )
     return message
- 
 
 
-
-def kuki_message(context: CallbackContext, message):
-    reply_message = message.reply_to_message
-    if message.text.lower() == "cutiepii":
+def check_message(context: CallbackContext, message):
+    reply_msg = message.reply_to_message
+    message = message.text
+    if re.search("[.|\n]{0,}[s|A][a|A][i|I][t|T][a|A][m|M][a|A][.|\n]{0,}", message):
         return True
-    if reply_message:
-        if reply_message.from_user.id == context.bot.get_me().id:
+    if reply_msg:
+        """
+        Lol call me
+        """
+        if reply_msg.from_user.id == context.bot.get_me().id:
             return True
     else:
         return False
-        
 
+        
 def chatbot(update: Update, context: CallbackContext):
     msg = update.effective_message
     chat_id = update.effective_chat.id
+    is_kuki = sql.is_kuki(chat.id)
     bot = context.bot
-    if not update.effective_message.chat.type == "private":
-        is_kuki = sql.is_kuki(chat_id)
-        if not is_kuki:
-            return
+    if not is_kuki:
+    	return
     	
-    if message.text and not message.document:
-        if not check_kuki(context, message):
+    if msg.text and not msg.document:
+        if not check_message(context, msg):
             return
-        message = message.text
+        message = msg.text
         bot.send_chat_action(chat_id, action="typing")
         kuki = requests.get('https://kuki.up.railway.app/Kuki/chatbot?message='+message)
         sleep(0.3)
         msg.reply_text(kuki, timeout=60)
-
+        
+        
 def list_all_chats(update: Update, context: CallbackContext):
     chats = sql.get_all_kuki_chats()
     text = "<b>KUKI-Enabled Chats</b>\n"
@@ -141,13 +150,15 @@ Reports bugs at @Black_Knights_Union_Support
 
 __mod_name__ = "ChatBot"
 
-ADD_CHAT_HANDLER = CommandHandler("addchat", add_chat, run_async=True)
-REMOVE_CHAT_HANDLER = CommandHandler("rmchat", rem_chat, run_async=True)
-CHATBOT_HANDLER = MessageHandler(
-    Filters.text & (~Filters.regex(r"^#[^\s]+") & ~Filters.regex(r"^!")
-                    & ~Filters.regex(r"^\/")), chatbot)
-LIST_ALL_CHATS_HANDLER = CommandHandler(
-    "allchats", list_all_chats, filters=CustomFilters.dev_filter, run_async=True)
+ADD_CHAT_HANDLER = DisableAbleCommandHandler("addchat", add_chat, run_async=True)
+REMOVE_CHAT_HANDLER = DisableAbleCommandHandler("rmchat", rem_chat, run_async=True)
+CHATBOT_HANDLER = DisableAbleMessageHandler(Filters.text & (~Filters.regex(r"^#[^\s]+") & ~Filters.regex(r"^!") & ~Filters.regex(r"^\/")), chatbot)    
+LIST_ALL_CHATS_HANDLER = DisableAbleCommandHandler(
+    "allchats", 
+    list_all_chats, 
+    filters=CustomFilters.dev_filter,
+    run_async=True,
+)    
 
 dispatcher.add_handler(ADD_CHAT_HANDLER)
 dispatcher.add_handler(REMOVE_CHAT_HANDLER)
