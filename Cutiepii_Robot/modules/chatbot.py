@@ -76,10 +76,10 @@ def rem_chat(update: Update, context: CallbackContext):
 
 
 def kuki_message(context: CallbackContext, message):
-    reply_message = message.reply_to_message
+    reply_msg = message.reply_to_message
     if message.text.lower() == "cutiepii":
         return True
-    if reply_message:
+    if reply_msg:
         if reply_message.from_user.id == context.bot.get_me().id:
             return True
     else:
@@ -87,7 +87,7 @@ def kuki_message(context: CallbackContext, message):
         
 
 def chatbot(update: Update, context: CallbackContext):
-    message = update.effective_message
+    msg = update.effective_message
     chat_id = update.effective_chat.id
     bot = context.bot
     if not update.effective_message.chat.type == "private":
@@ -95,14 +95,14 @@ def chatbot(update: Update, context: CallbackContext):
         if not is_kuki:
             return
     	
-    if message.text and not message.document:
-        if not kuki_message(context, message):
+    if msg.text and not msg.document:
+        if not kuki_message(context, msg):
             return
-        Message = message.text
+        message = message.text
         bot.send_chat_action(chat_id, action="typing")
-        kuki = requests.get('https://kuki.up.railway.app/Kuki/chatbot?message='+Message)
+        kuki = requests.get('https://kuki.up.railway.app/Kuki/chatbot?message='+message)
         sleep(0.3)
-        message.reply_text(kuki, timeout=60)
+        msg.reply_text(kuki, timeout=60)
 
 def list_all_chats(update: Update, context: CallbackContext):
     chats = sql.get_all_kuki_chats()
