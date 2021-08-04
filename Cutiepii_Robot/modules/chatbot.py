@@ -39,17 +39,21 @@ def add_chat(update: Update, context: CallbackContext):
     chat = update.effective_chat
     msg = update.effective_message
     user = update.effective_user
-    is_kuki = sql.is_kuki(chat.id)
+    is_chat = sql.is_chat(chat.id)
+    if chat.type == "private":
+        msg.reply_text("You can't enable AI in PM.")
+        return
+        
     if not is_kuki:
-        sql.set_kuki(chat.id)
-        msg.reply_text("Cutiepii AI successfully enabled for this chat!")
+        sql.set_chat(chat.id)
+        msg.reply_text("AI successfully enabled for this chat!")
         message = (
             f"<b>{html.escape(chat.title)}:</b>\n"
             f"AI_ENABLED\n"
             f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}\n"
         )
         return message
-    msg.reply_text("Cutiepii AI is already enabled for this chat!")
+    msg.reply_text("Asuna AI is already enabled for this chat!")
     return ""
 
 
@@ -61,10 +65,10 @@ def rem_chat(update: Update, context: CallbackContext):
     user = update.effective_user
     is_kuki = sql.is_kuki(chat.id)
     if not is_kuki:
-        msg.reply_text("Cutiepii AI isn't enabled here in the first place!")
+        msg.reply_text("Asuna AI isn't enabled here in the first place!")
         return ""
     sql.rem_kuki(chat.id)
-    msg.reply_text("Cutiepii AI disabled successfully!")
+    msg.reply_text("Asuna AI disabled successfully!")
     message = (
         f"<b>{html.escape(chat.title)}:</b>\n"
         f"AI_DISABLED\n"
