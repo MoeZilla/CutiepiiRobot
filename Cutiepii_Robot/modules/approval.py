@@ -23,14 +23,14 @@ def approval(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
 
-    chat = update.effective_chat  
-    user = update.effective_user 
+    chat = update.effective_chat
+    user = update.effective_user
     message = update.effective_message
-    args = context.args 
+    args = context.args
     user_id, reason = extract_user_and_text(message, args)
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
-        return 
+        return
     try:
         member = chat.get_member(user_id)
     except BadRequest as excp:
@@ -42,7 +42,7 @@ def approval(update: Update, context: CallbackContext) -> str:
         message.reply_text("How I supposed to approve myself")
         return 
 
-    chat_id = str(chat.id)[1:] 
+    chat_id = str(chat.id)[1:]
     approve_list = list(REDIS.sunion(f'approve_list_{chat_id}'))
     target_user = mention_html(member.user.id, member.user.first_name)
     if target_user in approve_list:
@@ -52,12 +52,11 @@ def approval(update: Update, context: CallbackContext) -> str:
         )
         return
 
-    if target_user not in approve_list:
-        message.reply_text(
-            "{} is not an approved user. They are affected by normal commands.".format(mention_html(member.user.id, member.user.first_name)),                                              
-            parse_mode=ParseMode.HTML
-        )
-        return
+    message.reply_text(
+        "{} is not an approved user. They are affected by normal commands.".format(mention_html(member.user.id, member.user.first_name)),                                              
+        parse_mode=ParseMode.HTML
+    )
+    return
 
 
 
@@ -161,20 +160,18 @@ def approved(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
 
-    chat = update.effective_chat 
-    user = update.effective_user 
+    chat = update.effective_chat
+    user = update.effective_user
     message = update.effective_message
-    chat_id = str(chat.id)[1:] 
+    chat_id = str(chat.id)[1:]
     approved_list = list(REDIS.sunion(f'approve_list_{chat_id}'))
     approved_list.sort()
-    approved_list = ", ".join(approved_list)
-
-    if approved_list: 
-            message.reply_text(
-                "The Following Users Are Approved: \n"
-                "{}".format(approved_list),
-                parse_mode=ParseMode.HTML
-            )
+    if approved_list := ", ".join(approved_list):
+        message.reply_text(
+            "The Following Users Are Approved: \n"
+            "{}".format(approved_list),
+            parse_mode=ParseMode.HTML
+        )
     else:
         message.reply_text(
             "No users are are approved in {}.".format(chat.title),

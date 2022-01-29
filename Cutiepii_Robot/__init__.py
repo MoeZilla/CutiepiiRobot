@@ -39,9 +39,7 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     )
     sys.exit(1)
 
-ENV = bool(os.environ.get("ENV", False))
-
-if ENV:
+if ENV := bool(os.environ.get("ENV", False)):
     TOKEN = os.environ.get("TOKEN", None)
 
     try:
@@ -193,7 +191,7 @@ else:
         BL_CHATS = {int(x) for x in Config.BL_CHATS or []}
     except ValueError:
         raise Exception("Your blacklisted chats list does not contain valid integers.")
-        
+
 
 DRAGONS.add(OWNER_ID)
 DEV_USERS.add(OWNER_ID)
@@ -215,7 +213,7 @@ finally:
    REDIS.ping()
 
    LOGGER.info("[CUTIEPII]: Connection To The Yūki • Data Center • Mumbai • Redis Database Established Successfully!")
-    
+
 
 if not SPAMWATCH_API:
     sw = None
@@ -289,9 +287,7 @@ async def get_entity(client, entity):
                 entity_client = pgram
     return entity, entity_client
 
-apps = []
-apps.append(pgram)
-
+apps = [pgram]
 DRAGONS = list(DRAGONS) + list(DEV_USERS)
 DEV_USERS = list(DEV_USERS)
 WOLVES = list(WOLVES)
