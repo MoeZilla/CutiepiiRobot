@@ -30,8 +30,7 @@ def blacklist(update, context):
     user = update.effective_user
     args = context.args
 
-    conn = connected(context.bot, update, chat, user.id, need_admin=False)
-    if conn:
+    if conn := connected(context.bot, update, chat, user.id, need_admin=False):
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
@@ -76,8 +75,7 @@ def add_blacklist(update, context):
     user = update.effective_user
     words = msg.text.split(None, 1)
 
-    conn = connected(context.bot, update, chat, user.id)
-    if conn:
+    if conn := connected(context.bot, update, chat, user.id):
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
@@ -127,8 +125,7 @@ def unblacklist(update, context):
     user = update.effective_user
     words = msg.text.split(None, 1)
 
-    conn = connected(context.bot, update, chat, user.id)
-    if conn:
+    if conn := connected(context.bot, update, chat, user.id):
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
@@ -145,8 +142,7 @@ def unblacklist(update, context):
                 if trigger.strip()})
         successful = 0
         for trigger in to_unblacklist:
-            success = sql.rm_from_blacklist(chat_id, trigger.lower())
-            if success:
+            if success := sql.rm_from_blacklist(chat_id, trigger.lower()):
                 successful += 1
 
         if len(to_unblacklist) == 1:
@@ -220,11 +216,10 @@ def blacklist_mode(update, context):
         chat_name = update.effective_message.chat.title
 
     if args:
-        if (args[0].lower() == "off" or args[0].lower() == "nothing" or
-                args[0].lower() == "no"):
+        if args[0].lower() in ["off", "nothing", "no"]:
             settypeblacklist = "do nothing"
             sql.set_blacklist_strength(chat_id, 0, "0")
-        elif args[0].lower() == "del" or args[0].lower() == "delete":
+        elif args[0].lower() in ["del", "delete"]:
             settypeblacklist = "will delete blacklisted message"
             sql.set_blacklist_strength(chat_id, 1, "0")
         elif args[0].lower() == "warn":
@@ -338,7 +333,7 @@ def del_blacklist(update, context):
         return
 
 
-    chat_id = str(chat.id)[1:] 
+    chat_id = str(chat.id)[1:]
     approve_list = list(REDIS.sunion(f'approve_list_{chat_id}'))
     target_user = mention_html(user.id, user.first_name)
     if target_user in approve_list:
@@ -380,8 +375,7 @@ def del_blacklist(update, context):
                     return
                 elif getmode == 4:
                     message.delete()
-                    res = chat.unban_member(update.effective_user.id)
-                    if res:
+                    if res := chat.unban_member(update.effective_user.id):
                         bot.sendMessage(
                             chat.id,
                             f"Kicked {user.first_name} for using Blacklisted word: {trigger}!",
@@ -419,9 +413,7 @@ def del_blacklist(update, context):
                     )
                     return
             except BadRequest as excp:
-                if excp.message == "Message to delete not found":
-                    pass
-                else:
+                if excp.message != "Message to delete not found":
                     LOGGER.exception("Error while deleting blacklist message.")
             break
 
